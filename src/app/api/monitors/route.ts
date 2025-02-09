@@ -1,24 +1,55 @@
+import { fetchMonitors } from '@/utils/api';
+import { NextResponse } from 'next/server';
+
 export const runtime = 'edge';
 
-import { NextResponse } from 'next/server'
-import { fetchMonitors } from '@/utils/api'
+// Cache the response for 30 seconds
+export const revalidate = 30;
 
 export async function GET() {
-  try {
-    const data = await fetchMonitors();
-    // Return response with cache headers
-    return new NextResponse(JSON.stringify(data), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60'
-      }
-    });
-  } catch (error) {
-    console.error('Error in GET handler:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch monitors' },
-      { status: 500 }
-    );
-  }
+    try {
+        if (!process.env.HETRIX_API_TOKEN) {
+            console.error('HETRIX_API_TOKEN environment variable is not configured');
+            return NextResponse.json(
+                { 
+                    monitors: [],
+                    error: 'HetrixTools API token is not configured. Please set the HETRIX_API_TOKEN environment variable in your Cloudflare Pages settings.'
+                },
+                { 
+                    status: 500,
+                }
+            );
+        }
+
+        const { monitors } = await fetchMonitors();
+        
+        if (!monitors || monitors.length === 0) {
+            console.log('No monitors returned from API');
+        }
+
+        return NextResponse.json(
+            { monitors },
+            {
+                status: 200,
+                headers: {
+                    'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+                }
+            }
+        );
+    } catch (error) {
+        // Enhanced error logging
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('API Error:', errorMessage);
+        
+        return NextResponse.json(
+            { 
+                monitors: [],
+                error: errorMessage,
+                timestamp: new Date().toISOString()
+            },
+            { 
+                status: 500,
+            }
+        );
+    }
 }

@@ -81,7 +81,7 @@ export function MonitorCard({ monitor }: MonitorCardProps) {
                 </Badge>
               </div>
             </div>
-            <MotionDiv
+            <MotionDiv 
               className="text-right"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}

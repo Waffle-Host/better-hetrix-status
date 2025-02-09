@@ -7,13 +7,6 @@ interface StatusOverviewProps {
 
 export function StatusOverview({ monitors, lastUpdated }: StatusOverviewProps) {
   const getSystemStatus = () => {
-    if (monitors.length === 0) return { 
-      status: 'unknown', 
-      text: 'Loading status...',
-      color: 'bg-gray-500',
-      ring: 'ring-gray-500/20'
-    }
-    
     const downMonitors = monitors.filter(m => m.status === 'down').length
     const degradedMonitors = monitors.filter(m => m.status === 'degraded').length
     
@@ -41,7 +34,14 @@ export function StatusOverview({ monitors, lastUpdated }: StatusOverviewProps) {
     }
   }
 
-  const status = getSystemStatus()
+  const status = monitors.length === 0 
+    ? {
+        status: 'unknown',
+        text: 'Loading status...',
+        color: 'bg-gray-500',
+        ring: 'ring-gray-500/20'
+      }
+    : getSystemStatus()
 
   return (
     <div className="rounded-2xl backdrop-blur-sm shadow-lg transition-all duration-300 bg-card/50 ring-1 ring-border/50 p-8">
